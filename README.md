@@ -13,7 +13,7 @@ A collaboration between DeepLearning.AI and Landing AI, the Data-Centric AI Comp
 * Maybe I should first try to clean the data by hand (ofcourse)
 * Write a GAN to make some more roman numerals (cause I can submit upto 10,000 images)
 * Some augmentations (not sure which one will make the data better)
-
+* [implimenting this for augmentations](https://arxiv.org/pdf/1805.09501v3.pdf)
 
 ## Training losses and accuracies after every run !
 
