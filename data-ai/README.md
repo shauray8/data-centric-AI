@@ -1,3 +1,3 @@
 # Augmentations 
 
-![overview](Overview.png)
+![overview](./docs/Overview.png)
