@@ -1,17 +1,18 @@
 ## -------------------- AUTO AUGMENT -------------------- ##
 
-import albumentation 
 import torch
 import torch.nn as nn
 
+from ops import *
 import torchvision
+import numpy as np
 import PIL
 
 class RomanPolicy(object):
     ## -------------------- the probability of applying the operation -------------------- ##
     ## -------------------- the magnitude of the operation -------------------- ##
 
-def __init__(self, fillcolor=(128, 128, 128)):
+    def __init__(self, fillcolor=(128, 128, 128)):
         self.policies = [
             SubPolicy(0.9, "shearX", 4, 0.2, "invert", 3, fillcolor),
             SubPolicy(0.9, "shearY", 8, 0.7, "invert", 5, fillcolor),
@@ -51,6 +52,67 @@ def __init__(self, fillcolor=(128, 128, 128)):
     def __repr__(self):
         return "AutoAugment ROMAN NUMERALS Policy"
 
+
+class SubPolicy(object):
+    def __init__(self, p1, operation1, magnitude_idx1, p2, operation2, magnitude_idx2, fillcolor=(128, 128, 128)):
+        ranges = {
+            "shearX": np.linspace(0, 0.3, 10),
+            "shearY": np.linspace(0, 0.3, 10),
+            "translateX": np.linspace(0, 150 / 331, 10),
+            "translateY": np.linspace(0, 150 / 331, 10),
+            "rotate": np.linspace(0, 30, 10),
+            "color": np.linspace(0.0, 0.9, 10),
+            "posterize": np.round(np.linspace(8, 4, 10), 0).astype(np.int),
+            "solarize": np.linspace(256, 0, 10),
+            "contrast": np.linspace(0.0, 0.9, 10),
+            "sharpness": np.linspace(0.0, 0.9, 10),
+            "brightness": np.linspace(0.0, 0.9, 10),
+            "autocontrast": [0] * 10,
+            "equalize": [0] * 10,
+            "invert": [0] * 10
+        }
+
+        func = {
+            "shearX": ShearX(fillcolor=fillcolor),
+            "shearY": ShearY(fillcolor=fillcolor),
+            "translateX": TranslateX(fillcolor=fillcolor),
+            "translateY": TranslateY(fillcolor=fillcolor),
+            "rotate": Rotate(),
+            "color": Color(),
+            "posterize": Posterize(),
+            "solarize": Solarize(),
+            "contrast": Contrast(),
+            "sharpness": Sharpness(),
+            "brightness": Brightness(),
+            "autocontrast": AutoContrast(),
+            "equalize": Equalize(),
+            "invert": Invert()
+        }
+
+        self.p1 = p1
+        self.operation1 = func[operation1]
+        self.magnitude1 = ranges[operation1][magnitude_idx1]
+        self.p2 = p2
+        self.operation2 = func[operation2]
+        self.magnitude2 = ranges[operation2][magnitude_idx2]
+
+    def __call__(self, img):
+        if random.random() < self.p1:
+            img = self.operation1(img, self.magnitude1)
+        if random.random() < self.p2:
+            img = self.operation2(img, self.magnitude2)
+        return img
+
+
+def augment():
+    input_transform = transforms.Compose([
+            transforms.Resize((36,36)),
+            #RandomTranslate(10),
+            transforms.ColorJitter(brightness=.3, contrast=0, saturation=0, hue=0),
+            transforms.GaussianBlur(3, sigma=(0.1, 2.0)),
+            transforms.RandomGrayscale(p=0.1),
+            transforms.ToTensor(),
+        ])
 
 if __name__ == "__main__":
     print("some augmentations to improve the dataset !")
